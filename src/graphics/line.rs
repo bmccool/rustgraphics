@@ -1,20 +1,4 @@
-mod graphics {
-    // Don't let anybody outside of this module see this!
-    fn get_secret_recipe() -> String {
-        String::from("Ginger")
-    }
-
-    pub fn make_sausage() {
-        get_secret_recipe();
-        println!("sausage!");
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Point {
-    pub x: f64,
-    pub y: f64,
-}
+use super::point::Point;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Line {
@@ -22,6 +6,7 @@ pub struct Line {
     pub end: Point,
     pub current: Point,
 }
+
 
 pub trait Magnitude { fn magnitude(&self) -> f64; }
 
@@ -52,31 +37,5 @@ impl Iterator for Line {
         }
         self.current = p;
         return Some(p);
-        /*
-        let slope = (self.start.y - self.end.y) /  (self.start.x - self.end.x);
-        print!("slope: {}", slope);
-        if slope < 1.0 {
-            if self.current.x > self.end.x {
-                self.current.x -= 1.0;
-                self.current.y -= slope;
-            }
-            else {
-                self.current.x += 1.0;
-                self.current.y += slope;
-            }
-
-        } else {
-            if self.current.y > self.end.y {
-                self.current.x -= 1.0 / slope;
-                self.current.y -= 1.0;
-            }
-            else {
-                self.current.x += 1.0 / slope;
-                self.current.y += 1.0;
-            }
-        }
-        Some(self.current)
-        */
-
     }
 }
