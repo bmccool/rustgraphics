@@ -6,6 +6,7 @@ use sdl2::pixels;
 
 use sdl2::gfx::primitives::DrawRenderer;
 
+#[allow(unused_imports)]
 use std::{thread, time};
 
 mod graphics;
@@ -43,10 +44,10 @@ fn main() -> Result<(), String> {
     'main: loop {
         canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
         canvas.clear();
-        let center = graphics::point::Point{x: 400.0, y: 300.0};
+        let center = graphics::point::Point{x: 400.0, y: 300.0, z: 0.0};
         let px = (degrees.sin() * 300.0) + center.x;
         let py = (degrees.cos() * 300.0) + center.y;
-        let moving_point = graphics::point::Point{x: px, y: py};
+        let moving_point = graphics::point::Point{x: px, y: py, z: 0.0};
         let line = graphics::line::Line{start: center, end: moving_point, current: center};
         for p in line.into_iter().take(1000) {
             let _ = canvas.pixel(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
