@@ -48,30 +48,20 @@ fn main() -> Result<(), String> {
     let mut degrees: f64 = 0.0;
     let mut sprite = graphics::sprite::Sprite{ origin: graphics::point::Point{x: 400.0, y: 300.0, z: 0.0 }, ..Default::default()};
     //sprite.lines.push(graphics::line::Line{start: graphics::point::Point{x: 0.0, y: 0.0, z: 0.0}, end: graphics::point::Point{x: 100.0, y: 100.0, z: 0.0}, current: graphics::point::Point{x: 0.0, y: 0.0, z: 0.0}});
-    sprite.points.push(graphics::point::Point{x: 20.0, y: 20.0, z: 0.0} + sprite.origin);
-    sprite.points.push(graphics::point::Point{x: 40.0, y: 20.0, z: 0.0} + sprite.origin);
-    sprite.points.push(graphics::point::Point{x: 40.0, y: 40.0, z: 0.0} + sprite.origin);
-    sprite.points.push(graphics::point::Point{x: 20.0, y: 40.0, z: 0.0} + sprite.origin);
+    sprite.points.push(graphics::point::Point{x:  20.0, y:  20.0, z: 0.0});
+    sprite.points.push(graphics::point::Point{x: -20.0, y:  20.0, z: 0.0});
+    sprite.points.push(graphics::point::Point{x:  20.0, y: -20.0, z: 0.0});
+    sprite.points.push(graphics::point::Point{x: -20.0, y: -20.0, z: 0.0});
 
     'main: loop {
         canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
         canvas.clear();
         let center = graphics::point::Point{x: 400.0, y: 300.0, z: 0.0};
-        //let px = (degrees.sin() * 300.0) + center.x;
-        //let py = (degrees.cos() * 300.0) + center.y;
-        //let moving_point = graphics::point::Point{x: px, y: py, z: 0.0};
         let mut moving_point = graphics::point::Point{x: 0.0, y: 300.0, z: 0.0};
         let rotation_matrix_z = RotationMatrixX{ angle:0.0 };
         moving_point = rotation_matrix_z.rotate(degrees, moving_point);
         moving_point = moving_point + center;
         let line = graphics::line::Line{start: center, end: moving_point, current: center};
-        //for p in line.into_iter().take(1000) {
-        /*
-        for p in line.bresenhams().iter() { 
-            let _ = canvas.pixel(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
-            //println!("x: {}, y: {}", p.x, p.y)
-        }
-        */
         sprite.angle_x = degrees;
         let callback = |x, y, color| canvas.pixel(x, y, color);
         sprite.render(callback);

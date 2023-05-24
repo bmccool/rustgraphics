@@ -29,6 +29,7 @@ impl Render for Sprite {
         for p in self.points.iter() {
             let mut rotated_point = *p;
             rotated_point = rotation_matrix_x.rotate(self.angle_x, rotated_point);
+            rotated_point = rotated_point + self.origin;
             //rotated_point = rotation_matrix_y.rotate(self.angle_y, rotated_point);
             let _ = f(rotated_point.x as i16, rotated_point.y as i16, 0xFFFFFFFFu32);
         }
