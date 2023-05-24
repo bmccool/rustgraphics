@@ -1,5 +1,6 @@
 extern crate sdl2;
 
+use graphics::sprite::Render;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels;
@@ -71,10 +72,9 @@ fn main() -> Result<(), String> {
             //println!("x: {}, y: {}", p.x, p.y)
         }
         */
-        for p in sprite.points.iter() {
-            let rotated_point = rotation_matrix_z.rotate(degrees, *p);
-            let _ = canvas.pixel(rotated_point.x as i16, rotated_point.y as i16, 0xFFFFFFFFu32);
-        }
+        sprite.angle_x = degrees;
+        let callback = |x, y, color| canvas.pixel(x, y, color);
+        sprite.render(callback);
         canvas.present();
         degrees += 0.0001;
         for event in events.poll_iter() {

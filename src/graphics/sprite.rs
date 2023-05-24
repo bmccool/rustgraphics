@@ -1,5 +1,6 @@
 use super::point::Point;
 use super::line::Line;
+use super::rotation::{Rotation, RotationMatrixX, RotationMatrixY, RotationMatrixZ, self};
 
 
 #[derive(Default)]
@@ -17,11 +18,24 @@ pub struct Sprite{
     pub angle_z: f64,
 }
 
-/*
-pub trait Render { fn render(&self, f: fn(i16, i16, u32) -> Result<(), String>) -> Result<String, String>; }
+
+pub trait Render { fn render(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String>; }
 
 impl Render for Sprite {
-    type Item = Point;
+    fn render(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String> {
+        let rotation_matrix_x = RotationMatrixX { angle: self.angle_x };
+        //let rotation_matrix_y = RotationMatrixY { angle: self.angle_y };
+        //let rotation_matrix_z = RotationMatrixZ { angle: self.angle_z };
+        for p in self.points.iter() {
+            let mut rotated_point = *p;
+            rotated_point = rotation_matrix_x.rotate(self.angle_x, rotated_point);
+            //rotated_point = rotation_matrix_y.rotate(self.angle_y, rotated_point);
+            let _ = f(rotated_point.x as i16, rotated_point.y as i16, 0xFFFFFFFFu32);
+        }
+        return Ok("TODO".to_string());
+    }
+
+    /*
     fn next(&mut self) -> Option<Self::Item> {
         //print!("current: {:?}, end: {:?}, ", self.current, self.end);
         if (self.current.x.floor() == self.end.x.floor()) && (self.current.y.floor() == self.end.y.floor()) {
@@ -38,5 +52,5 @@ impl Render for Sprite {
         self.current = p;
         return Some(p);
     }
+    */
 }
-*/
