@@ -1,3 +1,7 @@
+use super::point::Point;
+use super::line::Line;
+
+
 #[derive(Default)]
 pub struct Sprite{
     // I'm calling Sprite a collection of things in 3D that should move/rotate/draw together
@@ -5,14 +9,15 @@ pub struct Sprite{
     // RENDER will cast them back to absolute coordinates
     pub points: Vec<Point>,
     pub lines: Vec<Line>,
-    pub triangles: Vec<Triangle>,
-    pub quads: Vec<Quad>,
+    //pub triangles: Vec<Triangle>,
+    //pub quads: Vec<Quad>,
     pub origin: Point,
     pub angle_x: f64,
     pub angle_y: f64,
     pub angle_z: f64,
 }
 
+/*
 pub trait Render { fn render(&self, f: fn(i16, i16, u32) -> Result<(), String>) -> Result<String, String>; }
 
 impl Render for Sprite {
@@ -34,3 +39,4 @@ impl Render for Sprite {
         return Some(p);
     }
 }
+*/
