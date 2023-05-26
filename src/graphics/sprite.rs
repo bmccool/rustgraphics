@@ -1,6 +1,9 @@
 use super::point::Point;
 use super::line::Line;
+use super::line::Bresenhams;
 use super::rotation::{Rotation, RotationMatrixX, RotationMatrixY, RotationMatrixZ, self};
+use itertools::Itertools;
+
 
 
 #[derive(Default)]
@@ -18,20 +21,103 @@ pub struct Sprite{
     pub angle_z: f64,
 }
 
+pub fn from_points_faces(points: Vec<f64>, faces: Vec<u64>, scale: f64) -> Result<Sprite, String> {
+    // Returns a Sprite from a list of points and faces
+    // points is a vector of floats, with every group of three corresponding to a point
+    // faces is a vector of ints, with a pattern like
+    //     <number of points in face> <point index> <point index> <point index> <number of points in face> <point index> <point index> <point index> ...
+    //    where the number of points in face could be 3 (tri), 4 (quad), or more (poly?)
+    //   and the point index is the index of the point in the points vector
+    // The origin will default to 0,0,0
+    let mut sprite = Sprite{ origin: Point{x: 0.0, y: 0.0, z: 0.0 }, ..Default::default()};
+
+    //for chunk in points.into_iter().chunks(3).into_iter() {
+    //    // TODO I think the unwrap should be nicer.  Either pattern match, or unwarp_or_else thing
+    //    // Probably fine unless it gets bad data
+    //    sprite.points.push(Point{x: chunk.next().unwrap(), y: chunk.next().unwrap(), z: chunk.next().unwrap()});
+    //}
+    for i in 0..points.len() {
+        if i % 3 == 0 {
+            sprite.points.push(Point{x: points[i] * scale, y: points[i+1] * scale, z: points[i+2] * scale});
+        }
+    }
+
+    let mut face_iter = faces.into_iter();
+    while let Some(i) = face_iter.next() {
+        match i {
+            // TODO
+            // The format here looks AWFULLY similar.  Could this be generic?
+            3 => {
+                let index_a = face_iter.next().unwrap() as usize;
+                let index_b = face_iter.next().unwrap() as usize;
+                let index_c = face_iter.next().unwrap() as usize;
+
+                sprite.lines.push(Line{start: sprite.points[index_a], end: sprite.points[index_b], current: sprite.points[index_a]});
+                sprite.lines.push(Line{start: sprite.points[index_b], end: sprite.points[index_c], current: sprite.points[index_b]});
+                sprite.lines.push(Line{start: sprite.points[index_c], end: sprite.points[index_a], current: sprite.points[index_c]});
+            },
+            4 => {
+                let index_a = face_iter.next().unwrap() as usize;
+                let index_b = face_iter.next().unwrap() as usize;
+                let index_c = face_iter.next().unwrap() as usize;
+                let index_d = face_iter.next().unwrap() as usize;
+
+                sprite.lines.push(Line{start: sprite.points[index_a], end: sprite.points[index_b], current: sprite.points[index_a]});
+                sprite.lines.push(Line{start: sprite.points[index_b], end: sprite.points[index_c], current: sprite.points[index_b]});
+                sprite.lines.push(Line{start: sprite.points[index_c], end: sprite.points[index_d], current: sprite.points[index_c]});
+                sprite.lines.push(Line{start: sprite.points[index_d], end: sprite.points[index_a], current: sprite.points[index_d]});
+            },
+            5 => {
+                let index_a = face_iter.next().unwrap() as usize;
+                let index_b = face_iter.next().unwrap() as usize;
+                let index_c = face_iter.next().unwrap() as usize;
+                let index_d = face_iter.next().unwrap() as usize;
+                let index_e = face_iter.next().unwrap() as usize;
+
+                sprite.lines.push(Line{start: sprite.points[index_a], end: sprite.points[index_b], current: sprite.points[index_a]});
+                sprite.lines.push(Line{start: sprite.points[index_b], end: sprite.points[index_c], current: sprite.points[index_b]});
+                sprite.lines.push(Line{start: sprite.points[index_c], end: sprite.points[index_d], current: sprite.points[index_c]});
+                sprite.lines.push(Line{start: sprite.points[index_d], end: sprite.points[index_e], current: sprite.points[index_d]});
+                sprite.lines.push(Line{start: sprite.points[index_e], end: sprite.points[index_a], current: sprite.points[index_e]});
+            }
+            _ => return Err("Can't handle faces with that number of verticies".to_string()),
+        }
+    }
+    return Ok(sprite);
+}
 
 pub trait Render { fn render(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String>; }
 
 impl Render for Sprite {
     fn render(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String> {
         let rotation_matrix_x = RotationMatrixX { angle: self.angle_x };
-        //let rotation_matrix_y = RotationMatrixY { angle: self.angle_y };
-        //let rotation_matrix_z = RotationMatrixZ { angle: self.angle_z };
+        let rotation_matrix_y = RotationMatrixY { angle: self.angle_y };
+        let rotation_matrix_z = RotationMatrixZ { angle: self.angle_z };
+
+        // Render Points
         for p in self.points.iter() {
             let mut rotated_point = *p;
             rotated_point = rotation_matrix_x.rotate(self.angle_x, rotated_point);
+            rotated_point = rotation_matrix_y.rotate(self.angle_y, rotated_point);
+            rotated_point = rotation_matrix_z.rotate(self.angle_z, rotated_point);
             rotated_point = rotated_point + self.origin;
-            //rotated_point = rotation_matrix_y.rotate(self.angle_y, rotated_point);
             let _ = f(rotated_point.x as i16, rotated_point.y as i16, 0xFFFFFFFFu32);
+        }
+
+        // Render Lines
+        for l in self.lines.iter() {
+            let mut rotated_line = *l;
+            rotated_line.start = rotation_matrix_x.rotate(self.angle_x, rotated_line.start);
+            rotated_line.start = rotation_matrix_y.rotate(self.angle_y, rotated_line.start);
+            rotated_line.start = rotation_matrix_z.rotate(self.angle_z, rotated_line.start);
+            rotated_line.end = rotation_matrix_x.rotate(self.angle_x, rotated_line.end);
+            rotated_line.end = rotation_matrix_y.rotate(self.angle_y, rotated_line.end);
+            rotated_line.end = rotation_matrix_z.rotate(self.angle_z, rotated_line.end);
+            rotated_line.start = rotated_line.start + self.origin;
+            rotated_line.end = rotated_line.end + self.origin;
+            for p in rotated_line.bresenhams() {
+                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
+            }
         }
         return Ok("TODO".to_string());
     }
