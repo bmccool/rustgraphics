@@ -2,6 +2,7 @@ use super::point::Point;
 use super::line::Line;
 use super::line::Bresenhams;
 use super::rotation::{Rotation, RotationMatrixX, RotationMatrixY, RotationMatrixZ, self};
+use super::triangle::Triangle;
 use itertools::Itertools;
 
 
@@ -13,6 +14,7 @@ pub struct Sprite{
     // RENDER will cast them back to absolute coordinates
     pub points: Vec<Point>,
     pub lines: Vec<Line>,
+    pub tris: Vec<Triangle>,
     //pub triangles: Vec<Triangle>,
     //pub quads: Vec<Quad>,
     pub origin: Point,
@@ -116,6 +118,41 @@ impl Render for Sprite {
             rotated_line.start = rotated_line.start + self.origin;
             rotated_line.end = rotated_line.end + self.origin;
             for p in rotated_line.bresenhams() {
+                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
+            }
+        }
+
+        // Render Triangles
+        for t in self.tris.iter() {
+            let mut rotated_tri = *t;
+            rotated_tri.points[0] = rotation_matrix_x.rotate(self.angle_x, rotated_tri.points[0]);
+            rotated_tri.points[0] = rotation_matrix_y.rotate(self.angle_y, rotated_tri.points[0]);
+            rotated_tri.points[0] = rotation_matrix_z.rotate(self.angle_z, rotated_tri.points[0]);
+            rotated_tri.points[1] = rotation_matrix_x.rotate(self.angle_x, rotated_tri.points[1]);
+            rotated_tri.points[1] = rotation_matrix_y.rotate(self.angle_y, rotated_tri.points[1]);
+            rotated_tri.points[1] = rotation_matrix_z.rotate(self.angle_z, rotated_tri.points[1]);
+            rotated_tri.points[2] = rotation_matrix_x.rotate(self.angle_x, rotated_tri.points[2]);
+            rotated_tri.points[2] = rotation_matrix_y.rotate(self.angle_y, rotated_tri.points[2]);
+            rotated_tri.points[2] = rotation_matrix_z.rotate(self.angle_z, rotated_tri.points[2]);
+            rotated_tri.points[0] = rotated_tri.points[0] + self.origin;
+            rotated_tri.points[1] = rotated_tri.points[1] + self.origin;
+            rotated_tri.points[2] = rotated_tri.points[2] + self.origin;
+
+            // Draw A-B
+            let line = Line { start: rotated_tri.points[0], end: rotated_tri.points[1], current: rotated_tri.points[0] };
+            for p in line.bresenhams() {
+                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
+            }
+
+            // Draw B-C
+            let line = Line { start: rotated_tri.points[1], end: rotated_tri.points[2], current: rotated_tri.points[1] };
+            for p in line.bresenhams() {
+                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
+            }
+
+            // Draw C-A
+            let line = Line { start: rotated_tri.points[2], end: rotated_tri.points[0], current: rotated_tri.points[2] };
+            for p in line.bresenhams() {
                 let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
             }
         }

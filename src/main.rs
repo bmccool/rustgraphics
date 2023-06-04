@@ -2,6 +2,7 @@ extern crate sdl2;
 
 use graphics::sprite::Render;
 use graphics::sprite::Sprite;
+use graphics::triangle::Triangle;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels;
@@ -92,6 +93,27 @@ fn get_spikey() -> Result<Sprite, String> {
     return Ok(sprite);
 }
 
+fn demo_tri(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<String, String> {
+    let mut sprite = Sprite{ origin: graphics::point::Point{x: 400.0, y: 300.0, z: 0.0 }, ..Default::default()};
+    let point_a = graphics::point::Point{x:  200.0, y:  -200.0, z: 0.0};
+    let point_b = graphics::point::Point{x: -200.0, y:  -200.0, z: 0.0};
+    let point_c = graphics::point::Point{x:  0.0, y: 200.0, z: 0.0};
+    let tri = Triangle{ points: [point_a, point_b, point_c] };
+    sprite.tris.push(tri);
+    
+
+    'demo_tri: loop {
+        canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
+        canvas.clear();
+        let callback = |x, y, color| canvas.pixel(x, y, color);
+        sprite.render(callback);
+        canvas.present();
+        
+    }
+
+    //return Ok(String::from("Success!"));
+}
+
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -107,7 +129,7 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    let mut canvas: sdl2::render::Canvas<sdl2::video::Window> = window.into_canvas().build().map_err(|e| e.to_string())?;
 
     canvas.set_draw_color(pixels::Color::RGB(0, 0, 0));
     canvas.clear();
@@ -115,6 +137,8 @@ fn main() -> Result<(), String> {
 
     //let mut lastx = 0;
     //let mut lasty = 0;
+
+    demo_tri(&mut canvas);
 
     let mut events = sdl_context.event_pump()?;
 
