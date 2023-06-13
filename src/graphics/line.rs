@@ -22,6 +22,29 @@ pub trait Bresenhams {
     fn bresenhams(&self) -> Vec<Point>;
 }
 
+pub trait Fill { fn fill(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String>; }
+
+impl Fill for Line {
+    fn fill(&self, f: impl FnOnce(i16, i16, u32) -> Result<(), String> + std::marker::Copy) -> Result<String, String> {
+        let points = self.bresenhams();
+        for point in points {
+            f(point.x as i16, point.y as i16, 0xFFFFFFFFu32)?;
+        }
+        Ok("SUCCESS".to_string())
+    }
+}
+
+pub trait Slope { fn slope(&self) -> Point; }
+
+impl Slope for Line {
+    fn slope(&self) -> Point {
+        let x = self.end.x - self.start.x;
+        let y = self.end.y - self.start.y;
+        let z = self.end.z - self.start.z;
+        Point { x: x, y: y, z: z }
+    }
+}
+
 impl Bresenhams for Line {
     fn bresenhams(&self) -> Vec<Point> {
         let x0 = self.start.x as i16;

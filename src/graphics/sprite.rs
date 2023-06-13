@@ -3,6 +3,7 @@ use super::line::Line;
 use super::line::Bresenhams;
 use super::rotation::{Rotation, RotationMatrixX, RotationMatrixY, RotationMatrixZ, self};
 use super::triangle::Triangle;
+use super::triangle::Shade;
 use itertools::Itertools;
 
 
@@ -138,23 +139,7 @@ impl Render for Sprite {
             rotated_tri.points[1] = rotated_tri.points[1] + self.origin;
             rotated_tri.points[2] = rotated_tri.points[2] + self.origin;
 
-            // Draw A-B
-            let line = Line { start: rotated_tri.points[0], end: rotated_tri.points[1], current: rotated_tri.points[0] };
-            for p in line.bresenhams() {
-                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
-            }
-
-            // Draw B-C
-            let line = Line { start: rotated_tri.points[1], end: rotated_tri.points[2], current: rotated_tri.points[1] };
-            for p in line.bresenhams() {
-                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
-            }
-
-            // Draw C-A
-            let line = Line { start: rotated_tri.points[2], end: rotated_tri.points[0], current: rotated_tri.points[2] };
-            for p in line.bresenhams() {
-                let _ = f(p.x as i16, p.y as i16, 0xFFFFFFFFu32);
-            }
+            rotated_tri.shade(32, f)?;
         }
         return Ok("TODO".to_string());
     }
